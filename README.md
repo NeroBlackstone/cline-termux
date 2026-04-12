@@ -4,6 +4,28 @@
 
 <h1 align="center">Cline</h1>
 
+## Termux Edition (Unofficial)
+
+This repository also publishes an unofficial Termux bundle for Android (`aarch64`), maintained as a small downstream packaging layer on top of upstream Cline.
+
+Install:
+
+```bash
+curl -fsSL https://github.com/IChouChiang/cline-termux/releases/latest/download/install-cline-termux.sh | bash
+```
+
+Launch:
+
+```bash
+cline
+```
+
+> [!NOTE]
+>
+> The Termux edition is distributed as a prebuilt bundle. Release maintenance lives in this downstream fork, while `~/.cline` user data is preserved across upgrades.
+
+---
+
 <p align="center">
 The open source coding agent in your IDE and terminal.
 </p>

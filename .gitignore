@@ -59,7 +59,7 @@ tests/**/cache
 
 # Backup created by scripts/marketplace-readme.mjs while publishing.
 # Should never be committed: only exists if a publish aborts mid-swap.
-.README.github.bak
+/README.github.bak
 
 
 # SDK Session files / User data
@@ -70,3 +70,6 @@ tests/**/cache
 *.db-wal
 .cline/**/managed.json
 .cline/**/bundle.json
+# Termux release build artifacts
+release/dist/
+release/staging/
