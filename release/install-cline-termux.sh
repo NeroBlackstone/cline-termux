@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-GITHUB_REPO="IChouChiang/cline-termux"
+GITHUB_REPO="NeroBlackstone/cline-termux"
 INSTALL_BASE="$HOME/.cline-termux"
 LAUNCHER_PATH="$PREFIX/bin/cline"
 DOWNLOAD_DIR=""
