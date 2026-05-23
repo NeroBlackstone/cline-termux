@@ -65,13 +65,23 @@ if [ -d "$REPO_ROOT/standalone/runtime-files" ]; then
 	cp -R "$REPO_ROOT/standalone/runtime-files" "$TARGET_DIR/"
 fi
 
-# Copy package.json and lockfile for bun install
-info "Copying package.json..."
-cp "$SDK_DIR/package.json" "$TARGET_DIR/"
-if [ -f "$SDK_DIR/bun.lock" ]; then
-	info "Copying bun.lock..."
-	cp "$SDK_DIR/bun.lock" "$TARGET_DIR/"
-fi
+# Create a minimal package.json with only runtime dependencies
+info "Creating package.json with runtime dependencies..."
+node -e '
+const fs = require("fs");
+const sdkDir = process.argv[2];
+const targetDir = process.argv[3];
+const version = process.argv[4];
+const pkg = JSON.parse(fs.readFileSync(sdkDir + "/apps/cli/package.json", "utf8"));
+const deps = pkg.dependencies || {};
+const peerDeps = pkg.peerDependencies || {};
+const minimal = {
+  name: "cline-install",
+  version: version,
+  dependencies: { ...deps, ...peerDeps }
+};
+fs.writeFileSync(targetDir + "/package.json", JSON.stringify(minimal, null, 2));
+' "$SDK_DIR" "$TARGET_DIR" "$VERSION"
 
 # Run bun install in target directory to properly link dependencies
 info "Installing dependencies in target directory..."
