@@ -59,24 +59,28 @@ mkdir -p "$TARGET_DIR"
 info "Copying build files..."
 cp -R "$CLI_DIR/dist" "$TARGET_DIR/"
 
-# Copy node_modules needed for runtime
-info "Copying runtime dependencies..."
-
 # Copy standalone runtime files
 if [ -d "$REPO_ROOT/standalone/runtime-files" ]; then
+	info "Copying runtime files..."
 	cp -R "$REPO_ROOT/standalone/runtime-files" "$TARGET_DIR/"
 fi
 
-# Copy node_modules from SDK (filtering to only runtime deps)
-if [ -d "$SDK_DIR/node_modules" ]; then
-	info "Copying node_modules from SDK..."
-	cp -R "$SDK_DIR/node_modules" "$TARGET_DIR/" || {
-		error "node_modules copy failed"
-		exit 1
-	}
-else
-	warn "node_modules not found in SDK, runtime dependencies may be missing"
+# Copy package.json and lockfile for bun install
+info "Copying package.json..."
+cp "$SDK_DIR/package.json" "$TARGET_DIR/"
+if [ -f "$SDK_DIR/bun.lock" ]; then
+	info "Copying bun.lock..."
+	cp "$SDK_DIR/bun.lock" "$TARGET_DIR/"
 fi
+
+# Run bun install in target directory to properly link dependencies
+info "Installing dependencies in target directory..."
+cd "$TARGET_DIR"
+bun install || {
+	error "bun install failed"
+	exit 1
+}
+cd - > /dev/null
 
 # Link ripgrep
 mkdir -p "$TARGET_DIR/node_modules/@vscode/ripgrep/bin"
@@ -89,6 +93,7 @@ else
 	if command -v rg >/dev/null 2>&1; then
 		mkdir -p "$TARGET_DIR/node_modules/@vscode/ripgrep/bin"
 		ln -sf "$(command -v rg)" "$TARGET_DIR/node_modules/@vscode/ripgrep/bin/rg"
+		ok "ripgrep linked"
 	fi
 fi
 
