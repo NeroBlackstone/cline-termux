@@ -8,6 +8,8 @@
 
 This repository publishes an unofficial Termux bundle for Android (`aarch64`), maintained as a small downstream packaging layer on top of upstream Cline.
 
+**Prerequisites:** `bun` must be installed (`pkg install bun` in Termux).
+
 ### Install
 
 **From GitHub (latest release):**
