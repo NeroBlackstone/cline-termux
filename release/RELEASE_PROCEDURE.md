@@ -1,81 +1,109 @@
 # Cline Termux Edition - Release Procedure
 
-## Scope
+## Overview
 
-Keep this repository narrow: upstream Cline plus the Termux packaging layer only. Do not land local-model experiments or unrelated downstream features here.
+Cline v3.x uses a **Bun-based monorepo** structure. This document describes the updated build and release process for Termux.
 
-The expected downstream delta is small and should stay close to:
+## Key Differences from v2.x
 
-- `cli/package.json`
-- `.gitignore`
-- `README.md`
-- `release/`
+| Component | v2.x (old) | v3.x (new) |
+|-----------|------------|------------|
+| Package Manager | npm | Bun |
+| CLI Location | `cli/` | `sdk/apps/cli/` |
+| Build System | esbuild | Bun + TypeScript |
+| Entry Point | `dist/cli.mjs` | `dist/index.js` |
+| Memory Limit | 2GB | 2GB (Android) |
 
 ## Prerequisites
 
-- PC or WSL host with Node.js >= 20, npm, git, rsync, and SSH access to Termux
-- Termux device with `nodejs-lts`, `ripgrep`, `rsync`, and this repo cloned at `~/workspace/cline-termux`
-- GitHub CLI if you want to publish directly from the host
+### Termux Environment
+```bash
+pkg update && pkg upgrade
+pkg install bun ripgrep
+```
 
-## Upstream Sync
+### Clone this repository on Termux
+```bash
+cd ~/workspace
+git clone https://github.com/NeroBlackstone/cline-termux.git
+cd cline-termux
+```
+
+## Build (Local on Termux)
+
+### Option A: Full Build (Recommended first time)
+
+```bash
+cd ~/workspace/cline-termux
+bash release/build-termux.sh
+```
+
+This will:
+1. Install dependencies via `bun install`
+2. Build SDK packages (`@cline/core`, `@cline/llms`, etc.)
+3. Build CLI bundle to `sdk/apps/cli/dist/`
+
+### Option B: Development Mode
+
+```bash
+cd sdk
+bun install
+bun run cli
+```
+
+## Install from Local Build
+
+```bash
+cd ~/workspace/cline-termux
+bash release/install-from-built.sh
+```
+
+This will:
+1. Copy the build to `~/.cline-termux/v<VERSION>/`
+2. Create symlink at `~/.cline-termux/current`
+3. Install launcher at `$PREFIX/bin/cline`
+
+## Run
+
+```bash
+cline
+# or
+bun ~/.cline-termux/current/dist/index.js
+```
+
+## Full Release Build and Distribution (PC)
+
+For building distributable `.tar.gz` packages on a PC (requires Termux environment):
 
 ```bash
 cd /path/to/cline-termux
-git fetch upstream origin --tags
-git checkout main
-git rebase upstream/main
-git diff --name-only upstream/main...main
+
+# Sync with upstream cline
+git fetch cline
+git rebase cline/main
+
+# Build on Termux device via SSH
+bash release/build-release.sh --termux-host termux-device --termux-repo ~/workspace/cline-termux
+
+# The release tarball will be in release/dist/
 ```
 
-That file list should stay small. If it starts drifting into product behavior, back it out and keep the repo packaging-only.
-
-## Build and Assemble a Release
-
-From the host machine:
+## Publish to GitHub
 
 ```bash
-cd /path/to/cline-termux
-bash release/build-release.sh --termux-host termux --termux-repo ~/workspace/cline-termux
-```
-
-This script:
-
-1. Runs `npm run protos` on the host, or uses `--proto-source` if supplied.
-2. Syncs generated proto artifacts to Termux.
-3. Builds the CLI on Termux with `npm run build:termux`.
-4. Assembles the release tarball on Termux so native dependencies come from the Android environment.
-5. Pulls the tarball and checksum back into `release/dist/`.
-6. Renders release notes into `release/dist/RELEASE_NOTES-v<VERSION>.md`.
-
-## Manual Test
-
-```bash
-scp release/dist/cline-termux-aarch64-v<VERSION>.tar.gz termux:~/
-ssh termux 'cd ~ && tar xzf cline-termux-aarch64-v<VERSION>.tar.gz && cd cline-termux-aarch64-v<VERSION> && bash install.sh'
-ssh termux 'cline --version && cline --help >/dev/null'
-```
-
-For a second-device smoke test on another Termux install, copy the tarball and run:
-
-```bash
-bash release/test-termux-install.sh --from-tarball ~/cline-termux-aarch64-v<VERSION>.tar.gz
-```
-
-## Publish
-
-```bash
+cd release/dist
 gh release create v<VERSION>-termux \
-  release/dist/cline-termux-aarch64-v<VERSION>.tar.gz \
-  release/dist/cline-termux-aarch64-v<VERSION>.tar.gz.sha256 \
-  release/install-cline-termux.sh \
+  cline-termux-aarch64-v<VERSION>.tar.gz \
+  cline-termux-aarch64-v<VERSION>.tar.gz.sha256 \
+  ../install-cline-termux.sh \
   --title "Cline Termux Edition v<VERSION>" \
-  --notes-file release/dist/RELEASE_NOTES-v<VERSION>.md
+  --notes-file RELEASE_NOTES-v<VERSION>.md
 ```
 
-## End-User Install
+## End-User Install (from GitHub release)
 
 ```bash
-curl -fsSL https://github.com/IChouChiang/cline-termux/releases/latest/download/install-cline-termux.sh | bash
+curl -fsSL https://github.com/NeroBlackstone/cline-termux/releases/latest/download/install-cline-termux.sh | bash
 ```
 
 ## Install Layout
@@ -84,5 +112,30 @@ curl -fsSL https://github.com/IChouChiang/cline-termux/releases/latest/download/
 |------|---------|
 | `~/.cline-termux/v<VERSION>/` | Versioned runtime payload |
 | `~/.cline-termux/current` | Symlink to active version |
-| `$PREFIX/bin/cline` | Global launcher |
+| `$PREFIX/bin/cline` | Global launcher (runs via Bun) |
 | `~/.cline/` | User data preserved across upgrades |
+
+## Troubleshooting
+
+### Out of Memory
+```bash
+export TERMUX_MAX_OLD_SPACE_SIZE=1024  # Reduce if experiencing OOM
+bash release/build-termux.sh
+```
+
+### Bun not found
+```bash
+pkg install bun
+```
+
+### ripgrep not found
+```bash
+pkg install ripgrep
+```
+
+### Build fails with native modules
+```bash
+# OpenTUI requires platform-specific binaries
+# Install all variants:
+bun install --os="*" --cpu="*" @opentui/core@<version>
+```

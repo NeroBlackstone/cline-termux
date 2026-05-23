@@ -11,7 +11,7 @@ This repository also publishes an unofficial Termux bundle for Android (`aarch64
 Install:
 
 ```bash
-curl -fsSL https://github.com/IChouChiang/cline-termux/releases/latest/download/install-cline-termux.sh | bash
+curl -fsSL https://github.com/NeroBlackstone/cline-termux/releases/latest/download/install-cline-termux.sh | bash
 ```
 
 Launch:
