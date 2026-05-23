@@ -2,17 +2,7 @@
 
 ## Overview
 
-Cline v3.x uses a **Bun-based monorepo** structure. This document describes the updated build and release process for Termux.
-
-## Key Differences from v2.x
-
-| Component | v2.x (old) | v3.x (new) |
-|-----------|------------|------------|
-| Package Manager | npm | Bun |
-| CLI Location | `cli/` | `sdk/apps/cli/` |
-| Build System | esbuild | Bun + TypeScript |
-| Entry Point | `dist/cli.mjs` | `dist/index.js` |
-| Memory Limit | 2GB | 2GB (Android) |
+Cline Termux Edition is built using a **Bun-based monorepo**. This document describes the build and release process.
 
 ## Prerequisites
 
@@ -31,7 +21,7 @@ cd cline-termux
 
 ## Build (Local on Termux)
 
-### Option A: Full Build (Recommended first time)
+### Full Build
 
 ```bash
 cd ~/workspace/cline-termux
@@ -43,33 +33,14 @@ This will:
 2. Build SDK packages (`@cline/core`, `@cline/llms`, etc.)
 3. Build CLI bundle to `sdk/apps/cli/dist/`
 
-### Option B: Development Mode
-
-```bash
-cd sdk
-bun install
-bun run cli
-```
-
-## Install from Local Build
+## Assemble Release Package
 
 ```bash
 cd ~/workspace/cline-termux
-bash release/install-from-built.sh
+bash release/assemble-bundle.sh
 ```
 
-This will:
-1. Copy the build to `~/.cline-termux/v<VERSION>/`
-2. Create symlink at `~/.cline-termux/current`
-3. Install launcher at `$PREFIX/bin/cline`
-
-## Run
-
-```bash
-cline
-# or
-bun ~/.cline-termux/current/dist/index.js
-```
+This creates `release/dist/cline-termux-v<VERSION>.tar.gz`.
 
 ## Full Release Build and Distribution (PC)
 
@@ -90,20 +61,30 @@ bash release/build-release.sh --termux-host termux-device --termux-repo ~/worksp
 
 ## Publish to GitHub
 
-```bash
-cd release/dist
-gh release create v<VERSION>-termux \
-  cline-termux-aarch64-v<VERSION>.tar.gz \
-  cline-termux-aarch64-v<VERSION>.tar.gz.sha256 \
-  ../install-cline-termux.sh \
-  --title "Cline Termux Edition v<VERSION>" \
-  --notes-file RELEASE_NOTES-v<VERSION>.md
+Upload these files to GitHub Release:
+
+```
+cline-termux-v<VERSION>.tar.gz
+install-cline-termux.sh
+uninstall-cline-termux.sh
 ```
 
 ## End-User Install (from GitHub release)
 
 ```bash
 curl -fsSL https://github.com/NeroBlackstone/cline-termux/releases/latest/download/install-cline-termux.sh | bash
+```
+
+## Uninstall
+
+```bash
+curl -fsSL https://github.com/NeroBlackstone/cline-termux/releases/latest/download/uninstall-cline-termux.sh | bash
+```
+
+## Run
+
+```bash
+cline
 ```
 
 ## Install Layout
@@ -131,11 +112,4 @@ pkg install bun
 ### ripgrep not found
 ```bash
 pkg install ripgrep
-```
-
-### Build fails with native modules
-```bash
-# OpenTUI requires platform-specific binaries
-# Install all variants:
-bun install --os="*" --cpu="*" @opentui/core@<version>
 ```
