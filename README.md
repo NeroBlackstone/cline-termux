@@ -6,22 +6,46 @@
 
 ## Termux Edition (Unofficial)
 
-This repository also publishes an unofficial Termux bundle for Android (`aarch64`), maintained as a small downstream packaging layer on top of upstream Cline.
+This repository publishes an unofficial Termux bundle for Android (`aarch64`), maintained as a small downstream packaging layer on top of upstream Cline.
 
-Install:
+### Install
 
+**From GitHub (latest release):**
 ```bash
-curl -fsSL https://github.com/NeroBlackstone/cline-termux/releases/latest/download/install-cline-termux.sh | bash
+curl -fsSL https://raw.githubusercontent.com/NeroBlackstone/cline-termux/main/release/install-cline-termux.sh | bash
 ```
 
-Launch:
+
+### Uninstall
 
 ```bash
-cline
+curl -fsSL https://raw.githubusercontent.com/NeroBlackstone/cline-termux/main/release/uninstall-cline-termux.sh | bash
 ```
+
+Or manually:
+```bash
+rm -rf ~/.cline-termux /data/data/com.termux/files/usr/bin/cline
+```
+
+### Build & Package
+
+Prerequisites: `bun`, `node`, `git`.
+
+```bash
+# Build CLI
+bash release/build-termux.sh
+
+# Package tarball
+bash release/assemble-bundle.sh
+```
+
+Output: `release/dist/cline-termux-v<version>.tar.gz`
+
+### Configuration
+
+After installation, run `cline` to start. Configuration is stored in `~/.cline/`.
 
 > [!NOTE]
->
 > The Termux edition is distributed as a prebuilt bundle. Release maintenance lives in this downstream fork, while `~/.cline` user data is preserved across upgrades.
 
 ---
