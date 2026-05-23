@@ -94,6 +94,9 @@ fi
 rm -rf "$INSTALL_BASE/current"
 ln -sf "$TARGET_DIR" "$INSTALL_BASE/current"
 
+# Define CLINE_HOME for use in messages
+CLINE_HOME="$INSTALL_BASE/current"
+
 # Create launcher
 info "Creating launcher at $LAUNCHER_PATH..."
 mkdir -p "$PREFIX/bin"
