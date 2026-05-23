@@ -67,21 +67,13 @@ fi
 
 # Create a minimal package.json with only runtime dependencies
 info "Creating package.json with runtime dependencies..."
-node -e '
-const fs = require("fs");
-const sdkDir = process.argv[2];
-const targetDir = process.argv[3];
-const version = process.argv[4];
-const pkg = JSON.parse(fs.readFileSync(sdkDir + "/apps/cli/package.json", "utf8"));
-const deps = pkg.dependencies || {};
-const peerDeps = pkg.peerDependencies || {};
-const minimal = {
-  name: "cline-install",
-  version: version,
-  dependencies: { ...deps, ...peerDeps }
-};
-fs.writeFileSync(targetDir + "/package.json", JSON.stringify(minimal, null, 2));
-' "$SDK_DIR" "$TARGET_DIR" "$VERSION"
+node -e "
+const fs = require('fs');
+const pkg = JSON.parse(fs.readFileSync('$CLI_DIR/package.json', 'utf8'));
+const deps = {...(pkg.dependencies||{}), ...(pkg.peerDependencies||{})};
+const minimal = {name:'cline-install',version:'$VERSION',dependencies:deps};
+fs.writeFileSync('$TARGET_DIR/package.json', JSON.stringify(minimal, null, 2));
+"
 
 # Run bun install in target directory to properly link dependencies
 info "Installing dependencies in target directory..."
