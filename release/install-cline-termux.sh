@@ -59,10 +59,10 @@ curl -fSL -o "${DOWNLOAD_DIR}/${TARBALL_NAME}" "$TARBALL_URL" \
 
 # Extract
 info "Extracting..."
-EXTRACT_DIR="${DOWNLOAD_DIR}/cline-termux-${VERSION}"
-mkdir -p "$EXTRACT_DIR"
 tar -xzf "${DOWNLOAD_DIR}/${TARBALL_NAME}" -C "$DOWNLOAD_DIR"
-SOURCE_DIR=$(find "$DOWNLOAD_DIR" -maxdepth 1 -type d -name 'cline-termux-*' | head -n 1)
+
+# Extract creates cline-termux-v${VERSION}/ directory
+SOURCE_DIR="$DOWNLOAD_DIR/cline-termux-v${VERSION}"
 [ -d "$SOURCE_DIR" ] || die "Could not find extracted bundle directory."
 
 # Create install directory
