@@ -68,13 +68,15 @@ if [ -d "$REPO_ROOT/standalone/runtime-files" ]; then
 fi
 
 # Copy node_modules from SDK (filtering to only runtime deps)
-# For simplicity, we just copy the whole node_modules
-# In production, you might want to prune dev dependencies
-cp -R "$SDK_DIR/node_modules" "$TARGET_DIR/" 2>/dev/null || {
-	warn "node_modules copy failed, trying alternative..."
-	# Fallback: create minimal runtime environment
-	mkdir -p "$TARGET_DIR/node_modules"
-}
+if [ -d "$SDK_DIR/node_modules" ]; then
+	info "Copying node_modules from SDK..."
+	cp -R "$SDK_DIR/node_modules" "$TARGET_DIR/" || {
+		error "node_modules copy failed"
+		exit 1
+	}
+else
+	warn "node_modules not found in SDK, runtime dependencies may be missing"
+fi
 
 # Link ripgrep
 mkdir -p "$TARGET_DIR/node_modules/@vscode/ripgrep/bin"
